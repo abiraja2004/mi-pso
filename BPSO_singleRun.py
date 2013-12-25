@@ -17,30 +17,24 @@ from random import *
 class Particle:
     def __init__(self, nDim):
         self.nDim = nDim
-        # b: used in sigmoid function
-        self.b = [0.0] * nDim
-        # v: velocity, used to update b
+        # v: velocity
         self.v = [0.0] * nDim
         # x: binary value
-        self.x = [0.0] * nDim
+        self.x = [0] * nDim
         for i in range(self.nDim):
-            self.b[i] = random()-0.5
-            self.v[i] = random()*12.0-6.0
+            #According to Nanbo Jin's paper, v_max = 6
+            self.v[i] = random()*0.2-0.1
         self.updateX()
         self.fit = self.fitness()
     def updateX(self):
         for i in range(self.nDim):
-            s = 1.0 / (1.0 + exp(-self.b[i]))
+            s = 1.0 / (1.0 + exp(-self.v[i]))
             prob = random()
             if (prob < s) :
                 self.x[i] = 1
             else:
                 self.x[i] = 0
     # setPositiion not used in BPSO
-    def setPosition(self, pos):
-        self.b = pos[:]
-        self.updateX()
-        self.fit = self.fitness()
     def setVelocity(self, v):
         self.v = v[:]
         for i in range(self.nDim):
@@ -49,8 +43,6 @@ class Particle:
             elif self.v[i] < -6:
                 self.v[i] = -6.0
     def updatePosition(self):
-        for i in range(self.nDim):
-            self.b[i] += self.v[i]
         self.updateX()
         self.fit = self.fitness()
     def fitness(self):
@@ -69,10 +61,8 @@ class Particle:
             fitness = fitness + a[i]*a[i] - 10*cos(2*pi*a[i]) + 10.0
         return fitness
 
-# Smaller is better
 class PSOProblem:
     # integerDim: store dims in which variables should be integers.
-    # pm        : probability of mutation on integer dim
     def __init__(self, nDim, numOfParticles=None, maxIteration=None):
         self.nDim = nDim
         if numOfParticles == None:
@@ -86,7 +76,6 @@ class PSOProblem:
         self.p = [0]*(self.numOfParticles)
         self.pBest = [0]*(self.numOfParticles)
         self.gBest = None
-        # pm : probability of mutation
         self.initParticles()
 
     def initParticles(self):
@@ -95,15 +84,13 @@ class PSOProblem:
         for k in range(self.numOfParticles):
             self.p[k] = Particle(self.nDim)
             self.pBest[k] = Particle(self.nDim)
-            self.pBest[k].b = self.p[k].b[:]
             self.pBest[k].x = self.p[k].x[:]
-            self.pBest[k].v = self.p[k].v[:]
+        #    self.pBest[k].v = self.p[k].v[:]
             self.pBest[k].fit = self.p[k].fit
             if self.pBest[k].fit < gBest:
                 gBest = self.pBest[k].fit
                 bestK = k
         self.gBest = Particle(self.nDim)
-        self.gBest.b = self.p[bestK].b[:]
         self.gBest.x = self.p[bestK].x[:]
         self.gBest.fit = gBest
 #        print 'initial gBest fitness is %', self.gBest.fit
@@ -128,11 +115,9 @@ class PSOProblem:
 #                print 'in run, x', self.p[j].x
 #                print 'in run', self.p[j].fit
                 if isBetterThan(self.p[j], self.pBest[j]):
-                    self.pBest[j].b = self.p[j].b[:]
                     self.pBest[j].x = self.p[j].x[:]
                     self.pBest[j].fit = self.p[j].fit
                 if isBetterThan(self.p[j], self.gBest):
-                    self.gBest.b = self.p[j].b[:]
                     self.gBest.x = self.p[j].x[:]
                     self.gBest.fit = self.p[j].fit
             print i, '\t', self.gBest.fit, '\t', getR1(self.gBest.x), '\t', getR2(self.gBest.x), '\t', getR3(self.gBest.x)
