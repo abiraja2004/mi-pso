@@ -23,7 +23,7 @@ class Particle:
         self.x = [0] * nDim
         for i in range(self.nDim):
             #According to Nanbo Jin's paper, v_max = 6
-            self.v[i] = random()*0.2-0.1
+            self.v[i] = 0.0
         self.updateX()
         self.fit = self.fitness()
     def updateX(self):
@@ -31,9 +31,9 @@ class Particle:
             s = 1.0 / (1.0 + exp(-self.v[i]))
             prob = random()
             if (prob < s) :
-                self.x[i] = 1
+                self.x[i] = 1.0
             else:
-                self.x[i] = 0
+                self.x[i] = 0.0
     # setPositiion not used in BPSO
     def setVelocity(self, v):
         self.v = v[:]
@@ -79,7 +79,7 @@ class PSOProblem:
         self.initParticles()
 
     def initParticles(self):
-        gBest = 1e10
+        gBest = 1e50
         bestK = 0
         for k in range(self.numOfParticles):
             self.p[k] = Particle(self.nDim)
@@ -145,17 +145,17 @@ def binaryToReal(x):
 # R2: x[31]..x[16]
 # R3: x[15]..x[0]
 def getR1(x):
-    return binaryToReal(x[32:48])
+    return ''.join(map(str,map(int,x[32:48][::-1])))+'(%.3g)'%(binaryToReal(x[32:48]))
 
 def getR2(x):
-    return binaryToReal(x[16:32])
+    return ''.join(map(str,map(int,x[16:32][::-1])))+'(%.3g)'%(binaryToReal(x[16:32]))
 
 def getR3(x):
-    return "".join(map(str,x[:16]))
+    return ''.join(map(str,map(int,x[:16][::-1])))+'(%.3g)'%(binaryToReal(x[:16]))
 
 def BPSOTest():
     nDim = 48
-    numOfParticles = 20
+    numOfParticles = 10
     maxIteration = 200
     p1 = PSOProblem(nDim, numOfParticles, maxIteration)
     p1.run()
