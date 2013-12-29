@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 #Define your own fitness in Particle.fitness()
 #Usage:
 #    from pso import *
@@ -13,6 +13,7 @@
 
 from math import *
 from random import *
+import ipdb as pdb
 
 class Particle:
     def __init__(self, nDim):
@@ -105,6 +106,7 @@ class PSOProblem:
         for i in range(self.maxIteration):
             for j in range(self.numOfParticles):
                 # update velocity
+                #pdb.set_trace()
                 v = [0]*(self.nDim)
                 for dim in range(self.nDim):
                     v[dim] = ( w * self.p[j].v[dim] + c1*random()*(self.pBest[j].x[dim] - self.p[j].x[dim])
@@ -120,6 +122,7 @@ class PSOProblem:
                 if isBetterThan(self.p[j], self.gBest):
                     self.gBest.x = self.p[j].x[:]
                     self.gBest.fit = self.p[j].fit
+            #pdb.set_trace()
             print i, '\t', self.gBest.fit, '\t', getR1(self.gBest.x), '\t', getR2(self.gBest.x), '\t', getR3(self.gBest.x)
 #            print 'Round', i, 'gbest', self.gBest.fit
 #                print i, self.gBest.fit
@@ -155,7 +158,7 @@ def getR3(x):
 
 def BPSOTest():
     nDim = 48
-    numOfParticles = 10
+    numOfParticles = 80
     maxIteration = 200
     p1 = PSOProblem(nDim, numOfParticles, maxIteration)
     p1.run()
