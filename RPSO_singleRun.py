@@ -7,7 +7,7 @@ from numpy import array
 import pylab
 
 class Particle:
-    def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None):
+    def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None):
         self.nDim = nDim
         if minX== None:
             self.minX = [0]*nDim
@@ -25,6 +25,10 @@ class Particle:
             self.maxV = [0]*nDim
         else:
             self.maxV = maxV
+        if fitfunc==None:
+            self.fitfunc = None
+        else:
+            self.fitfunc = fitfunc
         # v: velocity
         self.v = [0.0] * nDim
         # x: position value
@@ -68,11 +72,11 @@ class Particle:
                 self.fit = self.fitness()
     def fitness(self):
         x = self.x[:]
-        return Rastringrin(x)
+        return self.fitfunc(x)
 
 class PSOProblem:
-    # minX, maxX, minV, maxV should be list
-    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None):
+    # minX, maxX, minV, maxV should be list/array
+    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None):
         self.nDim = nDim
         if numOfParticles == None:
             self.numOfParticles = 10 
@@ -86,6 +90,7 @@ class PSOProblem:
         self.maxX = maxX
         self.minV = minV
         self.maxV = maxV
+        self.fitfunc = fitfunc
         self.p = [None]*(self.numOfParticles)
         self.pBest = [None]*(self.numOfParticles)
         self.gBest = None
@@ -94,14 +99,14 @@ class PSOProblem:
         gBest = 1e50
         bestK = 0
         for k in xrange(self.numOfParticles):
-            self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV)
-            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV)
+            self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc)
+            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc)
             self.pBest[k].x = self.p[k].x[:]
             self.pBest[k].fit = self.p[k].fit
             if self.pBest[k].fit < gBest:
                 gBest = self.pBest[k].fit
                 bestK = k
-        self.gBest = Particle(self.nDim)
+        self.gBest = Particle(self.nDim, fitfunc=self.fitfunc)
         self.gBest.x = self.p[bestK].x[:]
         self.gBest.fit = gBest
 #        print 'initial gBest fitness is %', self.gBest.fit
@@ -113,7 +118,7 @@ class PSOProblem:
         c2 = 2.0
         # gBestArray: save gBest in each iteration
         # gBestArray[0]: initial gBest
-        self.gBestArray = [None]*(self.maxIteration+1)
+        self.gBestArray = array([0.0]*(self.maxIteration+1))
         self.gBestArray[0] = self.gBest.fit
         for i in xrange(self.maxIteration):
             for j in xrange(self.numOfParticles):
@@ -168,6 +173,33 @@ def Rastringrin(x):
         result += x[i]**2 - 10.0*cos(2*pi*x[i])+10
     return result
 
+def Griewank(x):
+    result = 0.0
+    part1 = 0.0
+    part2 = 1.0
+    for i in xrange(len(x)):
+        part1 += x[i]*x[i]
+        part2 *= cos(x[i]/sqrt(i+1))
+    result = 1.0/4000*part1-part2+1
+    return result
+
+#2D sinc defined in [Nanbo Jin, 2008]
+def Sinc(x):
+    return 1.0 - (sin(pi*(x[0]-3.0))*sin(pi*(x[1]-3.0))) / (pi*pi*(x[0]-3.0)*(x[1]-3.0))
+
+def SincTest():
+    nDim = 2
+    numOfParticles = 10
+    maxIteration = 50
+    minX = array([0.0]*nDim)
+    maxX = array([8.0]*nDim)
+    maxV = 0.2*(maxX - minX)
+    minV = -1.0*maxV
+    p1 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Sinc)
+    p1.run()
+    p1.drawResult()
+
+
 def RPSOTest():
     nDim = 3
     numOfParticles = 10
@@ -181,4 +213,4 @@ def RPSOTest():
     p1.drawResult()
 
 if __name__=='__main__':
-    RPSOTest()
+    SincTest()
