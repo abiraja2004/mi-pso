@@ -34,7 +34,7 @@ class Particle:
         else:
             self.fitfunc = fitfunc
         self.intDim = intDim
-        self.alpha = 1.0
+        self.alpha = alpha
         # v: velocity
         self.v = [0.0] * nDim
         # x: position value

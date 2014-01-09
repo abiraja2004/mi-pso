@@ -5,36 +5,73 @@ import pylab
 from numpy import array, linspace, log10
 import ipdb as pdb
 
-def SphereTest():
-    nDim = 3
+def SphereTestOverIntDim():
+    nDim = 10
     numOfParticles = 20
     maxIteration = 200
-    minX = array([-5.0]*nDim)
-    maxX = array([5.0]*nDim)
+    minX = array([-100.0]*nDim)
+    maxX = array([100.0]*nDim)
     maxV = 0.2*(maxX - minX)
     minV = -1.0*maxV
     numOfTrial = 20
-    gBest = array([0.0]*maxIteration)
-    for i in xrange(numOfTrial):
-        p1 = AUPSO.PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, AUPSO.Sphere)
-        p1.run()
-        gBest = gBest + p1.gBestArray[:maxIteration]
-    gBest = gBest / numOfTrial
+    alpha = 0.5
+    for intDim in xrange(0,11,2):
+        gBest = array([0.0]*maxIteration)
+        for i in xrange(numOfTrial):
+            p1 = AUPSO.PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, AUPSO.Sphere,intDim,alpha)
+            p1.run()
+            gBest = gBest + p1.gBestArray[:maxIteration]
+        gBest = gBest / numOfTrial
+        pylab.plot(range(maxIteration), log10(gBest),label='intDim='+str(intDim))
+    pylab.title('$G_{best}$ over 20 trials'+' alpha='+str(alpha))
     pylab.xlabel('The $N^{th}$ Iteratioin')
     pylab.ylabel('Average gBest over '+str(numOfTrial)+' runs')
-    pylab.title('$G_{best}$ over 20 trials')
     pylab.grid(True)
-#    pylab.yscale('log')
+    pylab.yscale('log')
     ylim = [-6, 1]
     ystep = 1.0
-    pylab.ylim(ylim[0], ylim[1])
-    yticks = linspace(ylim[0], ylim[1], int((ylim[1]-ylim[0])/ystep+1))
-    pylab.yticks(tuple(yticks), tuple(map(str,yticks)))
-    pylab.plot(range(maxIteration), log10(gBest),'-', label='Global best')
+#    pylab.ylim(ylim[0], ylim[1])
+#    yticks = linspace(ylim[0], ylim[1], int((ylim[1]-ylim[0])/ystep+1))
+#    pylab.yticks(tuple(yticks), tuple(map(str,yticks)))
     pylab.legend()
     pylab.show()
    
+def SphereTestOverAlpha():
+    nDim = 10
+    numOfParticles = 20
+    maxIteration = 200
+    minX = array([-100.0]*nDim)
+    maxX = array([100.0]*nDim)
+    maxV = 0.2*(maxX - minX)
+    minV = -1.0*maxV
+    numOfTrial = 20
+    intDim = 5
+    alpha = 1.0
+    while alpha>0.0:
+        gBest = array([0.0]*maxIteration)
+        for i in xrange(numOfTrial):
+            p1 = AUPSO.PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, AUPSO.Sphere,intDim,alpha)
+            p1.run()
+            gBest = gBest + p1.gBestArray[:maxIteration]
+        gBest = gBest / numOfTrial
+        pylab.plot(range(maxIteration), log10(gBest),label='alpha='+str(alpha))
+        print 'alpha = ', alpha
+        alpha -= 0.2
+    print 'now drawing'
+    pylab.title('$G_{best}$ over 20 trials'+' nDim='+str(nDim))
+    pylab.xlabel('The $N^{th}$ Iteratioin')
+    pylab.ylabel('Average gBest over '+str(numOfTrial)+' runs')
+    pylab.grid(True)
+    pylab.yscale('log')
+    ylim = [-6, 1]
+    ystep = 1.0
+#    pylab.ylim(ylim[0], ylim[1])
+#    yticks = linspace(ylim[0], ylim[1], int((ylim[1]-ylim[0])/ystep+1))
+#    pylab.yticks(tuple(yticks), tuple(map(str,yticks)))
+    pylab.legend()
+    pylab.show()
         
+
 def RosenbrockTest():
     nDim = 3
     numOfParticles = 20
@@ -136,4 +173,4 @@ def RPSOTest():
     p1.drawResult()
 
 if __name__=='__main__':
-    SphereTest()
+    SphereTestOverAlpha()
