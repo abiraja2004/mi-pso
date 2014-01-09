@@ -211,16 +211,16 @@ def GriewankTest():
     alpha = 0.5
     p1 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV,Griewank, 0, alpha)
     p1.run()
-    alpha = 1.0
+    alpha = 0.0
     p2 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV,Griewank, 0, alpha)
     p2.run()
     pylab.title('AU-PSO')
     pylab.xlabel('The $N^{th}$ Iteratioin')
     pylab.ylabel('Global Best')
     pylab.grid(True)
-    pylab.plot(range(1+maxIteration), p1.gBestArray,'-', label='alpha=0.3')
-    pylab.plot(range(1+maxIteration), p2.gBestArray,'-', label='alpha=1.0')
-    pylab.legend()
+    pylab.plot(range(1+maxIteration), p1.gBestArray,'-', label='alpha=0.5')
+    pylab.plot(range(1+maxIteration), p2.gBestArray,'-', label='alpha=0.0')
+    pylab.legend(loc='upper right')
     pylab.show()
 
 

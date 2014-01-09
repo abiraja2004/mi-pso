@@ -61,10 +61,10 @@ def RosenbrockTest():
     yticks = linspace(ymin, ymax, (ymax-ymin)/ystep+1)
     pylab.yticks(tuple(yticks),tuple(map(str,yticks)))
     pylab.plot(range(maxIteration), log10(gBest),'-', label='Global best')
-    pylab.legend()
+    pylab.legend(loc='upper right')
     pylab.show()
    
-def RastrigrinTest():
+def RastringrinTest():
     nDim = 3
     numOfParticles = 20
     maxIteration = 200
