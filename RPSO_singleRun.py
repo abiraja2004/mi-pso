@@ -47,30 +47,28 @@ class Particle:
             elif self.v[i] > self.maxV[i]:
                 self.v[i] = self.maxV[i]
     def updatePosition(self, boundaryType='Invisible'):
+        worstFitness = False
         for i in xrange(self.nDim):
             self.x[i] += self.v[i]
             if (self.x[i] < self.minX[i]): #exceed up bound
                 # three kinds of boundary handling
                 if boundaryType=='Absorbing':
                     self.x[i] = self.minX[i]
-                    self.fit = self.fitness()
                 elif boundaryType=='Reflecting':
                     self.x[i] = self.minX[i] + self.minX[i]-self.x[i] 
-                    self.fit = self.fitness()
                 elif boundaryType=='Invisible':
-                    self.fit = 1e50
+                    worstFitness = True
             elif (self.x[i] > self.maxX[i]): #exceed down bound
                 if boundaryType=='Absorbing':
                     self.x[i] = self.maxX[i]
-                    self.fit = self.fitness()
                 elif boundaryType=='Reflecting':
                     self.x[i] = self.maxX[i] + self.maxX[i]-self.x[i] 
-                    self.fit = self.fitness()
                 elif boundaryType=='Invisible':
-                    self.fit = 1e50
-            # position in boundary
-            else:
-                self.fit = self.fitness()
+                    worstFitness = True
+        if worstFitness:
+            self.fit = 1e50
+        else:
+            self.fit = self.fitness()
     def fitness(self):
         x = self.x[:]
         return self.fitfunc(x)

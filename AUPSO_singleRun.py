@@ -9,7 +9,7 @@ import pylab
 
 # x[0:-intDim]: real parameter
 # x[-intDim:]: integer parameter
-# alpha: update probability of integer parameter
+# alpha: holding probability of integer parameter
 class Particle:
     def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None, intDim = 0, alpha=1.0):
         self.nDim = nDim
@@ -42,7 +42,8 @@ class Particle:
         for i in xrange(self.nDim):
             self.v[i] = random()*(self.maxV[i]-self.minV[i]) + self.minV[i]
             self.x[i] = random()*(self.maxX[i]-self.minX[i]) + self.minX[i]
-        self.x[-intDim:] = map(round, self.x[-intDim:])
+        for i in xrange(self.nDim-self.intDim, self.nDim):
+            self.x[i] = round(self.x[i])
         self.fit = self.fitness()
     # setPositiion not used in BPSO
     def setVelocity(self, v):
@@ -52,37 +53,37 @@ class Particle:
                 self.v[i] = self.minV[i]
             elif self.v[i] > self.maxV[i]:
                 self.v[i] = self.maxV[i]
+
     def updatePosition(self, boundaryType='Invisible'):
+        worstFitness = False
         for i in xrange(self.nDim):
             if (i < (self.nDim-self.intDim)):
                 self.x[i] += self.v[i]
             else:
                 tmp = random()
-                if (tmp<self.alpha):
+                if (tmp>self.alpha):
                     self.x[i] += self.v[i]
                     self.x[i] = round(self.x[i]) # Enforce round on integer parameter
             if (self.x[i] < self.minX[i]): #exceed up bound
                 # three kinds of boundary handling
                 if boundaryType=='Absorbing':
                     self.x[i] = self.minX[i]
-                    self.fit = self.fitness()
                 elif boundaryType=='Reflecting':
                     self.x[i] = self.minX[i] + self.minX[i]-self.x[i] 
-                    self.fit = self.fitness()
                 elif boundaryType=='Invisible':
-                    self.fit = 1e50
+                    worstFitness = True
             elif (self.x[i] > self.maxX[i]): #exceed down bound
                 if boundaryType=='Absorbing':
                     self.x[i] = self.maxX[i]
-                    self.fit = self.fitness()
                 elif boundaryType=='Reflecting':
                     self.x[i] = self.maxX[i] + self.maxX[i]-self.x[i] 
-                    self.fit = self.fitness()
                 elif boundaryType=='Invisible':
-                    self.fit = 1e50
-            # position in boundary
-            else:
-                self.fit = self.fitness()
+                    worstFitness = True
+        if (worstFitness):
+            self.fit = 1e50
+        else:
+             self.fit = self.fitness()
+
     def fitness(self):
         x = self.x[:]
         return self.fitfunc(x)
@@ -199,16 +200,31 @@ def SincTest():
 
 
 def GriewankTest():
-    nDim = 3
+    nDim = 10
+    intDim = 3
     numOfParticles = 10
     maxIteration = 200
-    minX = array([-5.0]*nDim)
-    maxX = array([5.0]*nDim)
+    minX = array([-600.0]*nDim)
+    maxX = array([600.0]*nDim)
     maxV = 0.2*(maxX - minX)
     minV = -1.0*maxV
-    p1 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV,Griewank, 0, 1.0)
+    alpha = 0.5
+    p1 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV,Griewank, 0, alpha)
     p1.run()
-    p1.drawResult()
+    alpha = 1.0
+    p2 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV,Griewank, 0, alpha)
+    p2.run()
+    pylab.title('AU-PSO')
+    pylab.xlabel('The $N^{th}$ Iteratioin')
+    pylab.ylabel('Global Best')
+    pylab.grid(True)
+    pylab.plot(range(1+maxIteration), p1.gBestArray,'-', label='alpha=0.3')
+    pylab.plot(range(1+maxIteration), p2.gBestArray,'-', label='alpha=1.0')
+    pylab.legend()
+    pylab.show()
+
+
+
 
 if __name__=='__main__':
     GriewankTest()

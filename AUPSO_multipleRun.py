@@ -47,7 +47,7 @@ def SphereTestOverAlpha():
     numOfTrial = 20
     intDim = 5
     alpha = 1.0
-    while alpha>0.0:
+    while alpha>1e-3:
         gBest = array([0.0]*maxIteration)
         for i in xrange(numOfTrial):
             p1 = AUPSO.PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, AUPSO.Sphere,intDim,alpha)
