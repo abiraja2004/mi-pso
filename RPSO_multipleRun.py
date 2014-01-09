@@ -2,13 +2,13 @@
 
 import RPSO_singleRun as RPSO
 import pylab
-from numpy import array, linspace
+from numpy import array, linspace, log10
 import ipdb as pdb
 
 def SphereTest():
-    nDim = 10
-    numOfParticles = 5
-    maxIteration = 500
+    nDim = 3
+    numOfParticles = 20
+    maxIteration = 200
     minX = array([-5.0]*nDim)
     maxX = array([5.0]*nDim)
     maxV = 0.2*(maxX - minX)
@@ -22,21 +22,23 @@ def SphereTest():
     gBest = gBest / numOfTrial
     pylab.xlabel('The $N^{th}$ Iteratioin')
     pylab.ylabel('Average gBest over '+str(numOfTrial)+' runs')
+    pylab.title('$G_{best}$ over 20 trials')
     pylab.grid(True)
-    pylab.yscale('log')
-#    ylim = [-0.5, 4.5]
-#    ystep = 0.5
-#    pylab.ylim(10**ylim[0], 10**ylim[1])
-#    yticks = linspace(ylim[0], ylim[1], int(ylim[1]-ylim[0]/ystep+1))
-#    pylab.yticks(tuple(10**yticks), tuple(map(str,yticks)))
-    pylab.plot(range(maxIteration), gBest,'-')
+#    pylab.yscale('log')
+    ylim = [-6, 1]
+    ystep = 1.0
+    pylab.ylim(ylim[0], ylim[1])
+    yticks = linspace(ylim[0], ylim[1], int((ylim[1]-ylim[0])/ystep+1))
+    pylab.yticks(tuple(yticks), tuple(map(str,yticks)))
+    pylab.plot(range(maxIteration), log10(gBest),'-', label='Global best')
+    pylab.legend()
     pylab.show()
    
         
 def RosenbrockTest():
-    nDim = 10
-    numOfParticles = 5
-    maxIteration = 500
+    nDim = 3
+    numOfParticles = 20
+    maxIteration = 200
     minX = array([-5.0]*nDim)
     maxX = array([5.0]*nDim)
     maxV = 0.2*(maxX - minX)
@@ -48,14 +50,18 @@ def RosenbrockTest():
         p1.run()
         gBest = gBest + p1.gBestArray[:maxIteration]
     gBest = gBest / numOfTrial
+    pylab.title('$G_{best}$ over 20 trials')
     pylab.xlabel('The $N^{th}$ Iteratioin')
     pylab.ylabel('Average gBest over '+str(numOfTrial)+' runs (logscale)')
     pylab.grid(True)
-    pylab.yscale('log')
-    pylab.ylim(10**-0.5, 10**4.5)
-    yticks = linspace(-0.5,4.5, 5/0.5+1)
-    pylab.yticks(tuple(10**yticks),tuple(map(str,yticks)))
-    pylab.plot(range(maxIteration), gBest,'-')
+#    pylab.yscale('log')
+    ymin, ymax = -1.5, 2.5
+    ystep = 0.5
+    pylab.ylim(ymin, ymax)
+    yticks = linspace(ymin, ymax, (ymax-ymin)/ystep+1)
+    pylab.yticks(tuple(yticks),tuple(map(str,yticks)))
+    pylab.plot(range(maxIteration), log10(gBest),'-', label='Global best')
+    pylab.legend()
     pylab.show()
    
 def RastrigrinTest():
@@ -73,14 +79,18 @@ def RastrigrinTest():
         p1.run()
         gBest = gBest + p1.gBestArray[:maxIteration]
     gBest = gBest / numOfTrial
+    pylab.title('$G_{best}$ over 20 trials')
     pylab.xlabel('The $N^{th}$ Iteratioin')
     pylab.ylabel('Average gBest over '+str(numOfTrial)+' runs (logscale)')
     pylab.grid(True)
-    pylab.yscale('log')
-    pylab.ylim(10**-1.5, 10**1.5)
-    yticks = linspace(-1.5,1.5, 3/0.5+1)
-    pylab.yticks(tuple(10**yticks),tuple(map(str,yticks)))
-    pylab.plot(range(maxIteration), gBest,'-')
+#    pylab.yscale('log')
+    ymin, ymax = -1.5, 1.5
+    ystep = 0.5
+    pylab.ylim(ymin, ymax)
+    yticks = linspace(ymin, ymax, (ymax-ymin)/ystep+1)
+    pylab.yticks(tuple(yticks),tuple(map(str,yticks)))
+    pylab.plot(range(maxIteration), log10(gBest),'-', label='Global best')
+    pylab.legend()
     pylab.show()
 
 def GriewankTest():
@@ -98,17 +108,19 @@ def GriewankTest():
         p1.run()
         gBest = gBest + p1.gBestArray[:maxIteration]
     gBest = gBest / numOfTrial
+    pylab.title('$G_{best}$ over 20 trials')
     pylab.xlabel('The $N^{th}$ Iteratioin')
     pylab.ylabel('Average gBest over '+str(numOfTrial)+' runs (logscale)')
     pylab.grid(True)
-    pylab.yscale('log')
-    pylab.ylim(10**-2.2, 10**-0.6)
-    yticks = linspace(-2.2,-0.6, (2.2-0.6)/0.2+1)
-    pylab.yticks(tuple(10**yticks),tuple(map(str,yticks)))
-    pylab.plot(range(maxIteration), gBest,'-')
+#    pylab.yscale('log')
+    ymin, ymax = -2.2, -0.6
+    ystep = 0.2
+    pylab.ylim(ymin, ymax)
+    yticks = linspace(ymin, ymax, (ymax-ymin)/ystep+1)
+    pylab.yticks(tuple(yticks),tuple(map(str,yticks)))
+    pylab.plot(range(maxIteration), log10(gBest),'-', label='Global best')
+    pylab.legend()
     pylab.show()
-
-
 
 
 def RPSOTest():
@@ -124,4 +136,4 @@ def RPSOTest():
     p1.drawResult()
 
 if __name__=='__main__':
-    RosenbrockTest()
+    GriewankTest()

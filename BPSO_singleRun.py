@@ -1,18 +1,8 @@
 #!/usr/bin/env python
-#Define your own fitness in Particle.fitness()
-#Usage:
-#    from pso import *
-#    nDim = 10
-#    numOfParticles = 30 
-#    xMin = [-100.0]*nDim
-#    xMax = [100.0] * nDim
-#    p1 = PSOProblem('Rastigrin', nDim, xMin, xMax, numOfParticles, 1000)
-#    p1.run()
 
-
-
+from testfunc import *
 from math import *
-from random import *
+from random import random
 import ipdb as pdb
 
 class Particle:
