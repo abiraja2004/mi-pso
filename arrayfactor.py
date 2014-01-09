@@ -1,10 +1,14 @@
+#!/usr/bin/env python
+
 """
 Compute array factor of 1d and 2d antenna array.
 """
 
 from numpy import linspace, abs, sum, pi, sin, exp, log10, max, zeros
 
-def ArrayFactor(num, pos, amp, phase, theta):
+#1D array factor
+#Unit of AF: dB
+def OneDimAF(num, pos, amp, phase, theta):
     # num: number of elements
     # pos: position of elements, with unit of lambda
     # amp: Amplitude of element
@@ -12,7 +16,8 @@ def ArrayFactor(num, pos, amp, phase, theta):
     # unit of theta: radian
     return 20*log10(abs(sum(exp(1j*(phase/pi+2*pi*(pos-pos[0])*sin(theta))))))
 
-def SLL(AF):
+#1D normalized sidelobe level
+def OneDimSLL(AF):
     maxGain = max(AF)
 #    print 'maxGain is', maxGain
     sll = []
@@ -34,8 +39,8 @@ if __name__=='__main__':
     phase = linspace(0,0,num)
     AF = zeros(360)
     for i in xrange(360):
-        AF[i] =  ArrayFactor(num, pos, amp, phase, i/180.*pi)
+        AF[i] =  OneDimAF(num, pos, amp, phase, i/180.*pi)
     AF = AF - max(AF)
     pylab.plot(range(360), AF)
     pylab.show()
-    print 'SLL of', num, 'elements array is', SLL(AF), 'dB'
+    print 'SLL of', num, 'elements array is', OneDimSLL(AF), 'dB'
