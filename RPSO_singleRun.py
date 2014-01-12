@@ -137,6 +137,8 @@ class PSOProblem:
             self.gBestArray[i+1] = self.gBest.fit
     
     def drawResult(self):
+        print 'Init gBest:', self.gBestArray[0]
+        print 'Final gBest:', self.gBestArray[self.maxIteration]
         pylab.plot(range(1+self.maxIteration), self.gBestArray,'-')
         pylab.xlabel('The $N^{th}$ Iteratioin')
         pylab.ylabel('Global Best')
@@ -158,15 +160,15 @@ def isBetterThan(particleA, particleB):
 def Sinc(x):
     return 1.0 - (sin(pi*(x[0]-3.0))*sin(pi*(x[1]-3.0))) / (pi*pi*(x[0]-3.0)*(x[1]-3.0))
 
-def SincTest():
-    nDim = 2
-    numOfParticles = 10
-    maxIteration = 50
-    minX = array([0.0]*nDim)
-    maxX = array([8.0]*nDim)
+def GriewankTest():
+    nDim = 10
+    numOfParticles = 30
+    maxIteration = 30000
+    minX = array([-600.0]*nDim)
+    maxX = array([200.0]*nDim)
     maxV = 0.2*(maxX - minX)
     minV = -1.0*maxV
-    p1 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Sinc)
+    p1 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Griewank)
     p1.run()
     p1.drawResult()
 
@@ -184,4 +186,4 @@ def RPSOTest():
     p1.drawResult()
 
 if __name__=='__main__':
-    SincTest()
+    GriewankTest()
