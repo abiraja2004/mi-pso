@@ -54,7 +54,7 @@ class Particle:
             elif self.v[i] > self.maxV[i]:
                 self.v[i] = self.maxV[i]
 
-    def updatePosition(self, boundaryType='Invisible'):
+    def updatePosition(self, boundaryType='Invisible', fitlevel= None):
         worstFitness = False
         prevRealX = self.x[0:self.nDim-self.intDim]
         prevIntX = self.x[self.nDim-self.intDim:self.nDim]
@@ -83,13 +83,14 @@ class Particle:
             currfit = 1e50
         else:
             currfit = self.fitness()
+        if (fitlevel==None):
+            fitlevel = self.fit
         tmp = random()
-        if ((currfit < self.fit) or (tmp>self.alpha)):
+        if ((currfit < fitlevel) or (tmp>self.alpha)):
             self.fit = currfit
-        else:
-            if (tmp<self.alpha):
-                self.x[self.nDim-self.intDim:self.nDim] = prevIntX
-                self.fit = self.fitness()
+        elif (tmp<self.alpha):
+            self.x[self.nDim-self.intDim:self.nDim] = prevIntX
+            self.fit = self.fitness()
 
     def fitness(self):
         x = self.x[:]
@@ -151,7 +152,7 @@ class PSOProblem:
                     v[dim] = ( w * self.p[j].v[dim] + c1*random()*(self.pBest[j].x[dim] - self.p[j].x[dim])
                             + c2*random()*(self.gBest.x[dim] - self.p[j].x[dim]))
                 self.p[j].setVelocity(v)
-                self.p[j].updatePosition()
+                self.p[j].updatePosition(fitlevel=self.pBest[j].fit)
                 if isBetterThan(self.p[j], self.pBest[j]):
                     self.pBest[j].x = self.p[j].x[:]
                     self.pBest[j].fit = self.p[j].fit
