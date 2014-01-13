@@ -56,14 +56,14 @@ class Particle:
 
     def updatePosition(self, boundaryType='Invisible'):
         worstFitness = False
+        prevRealX = self.x[0:self.nDim-self.intDim]
+        prevIntX = self.x[self.nDim-self.intDim:self.nDim]
         for i in xrange(self.nDim):
             if (i < (self.nDim-self.intDim)):
                 self.x[i] += self.v[i]
             else:
-                tmp = random()
-                if (tmp>self.alpha):
-                    self.x[i] += self.v[i]
-                    self.x[i] = round(self.x[i]) # Enforce round on integer parameter
+                self.x[i] += self.v[i]
+                self.x[i] = round(self.x[i]) # Enforce round on integer parameter
             if (self.x[i] < self.minX[i]): #exceed up bound
                 # three kinds of boundary handling
                 if boundaryType=='Absorbing':
@@ -80,9 +80,16 @@ class Particle:
                 elif boundaryType=='Invisible':
                     worstFitness = True
         if (worstFitness):
-            self.fit = 1e50
+            currfit = 1e50
         else:
-             self.fit = self.fitness()
+            currfit = self.fitness()
+        tmp = random()
+        if ((currfit < self.fit) or (tmp>self.alpha)):
+            self.fit = currfit
+        else:
+            if (tmp<self.alpha):
+                self.x[self.nDim-self.intDim:self.nDim] = prevIntX
+                self.fit = self.fitness()
 
     def fitness(self):
         x = self.x[:]
