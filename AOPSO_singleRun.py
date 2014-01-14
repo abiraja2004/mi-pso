@@ -9,9 +9,8 @@ import pylab
 
 # x[0:-intDim]: real parameter
 # x[-intDim:]: integer parameter
-# alpha: holding probability of integer parameter
 class Particle:
-    def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None, intDim = 0, alpha=1.0):
+    def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None, intDim = 0):
         self.nDim = nDim
         if minX== None:
             self.minX = [0]*nDim
@@ -34,7 +33,6 @@ class Particle:
         else:
             self.fitfunc = fitfunc
         self.intDim = intDim
-        self.alpha = alpha
         # v: velocity
         self.v = [0.0] * nDim
         # x: position value
@@ -49,15 +47,15 @@ class Particle:
     def setVelocity(self, v):
         self.v = v[:]
         for i in xrange(self.nDim):
+            if (i>=self.nDim-self.intDim): # discrete variable's velocity is also integer
+                self.v[i] = round(self.v[i])
             if self.v[i] < self.minV[i] :
                 self.v[i] = self.minV[i]
             elif self.v[i] > self.maxV[i]:
                 self.v[i] = self.maxV[i]
 
-    def updatePosition(self, boundaryType='Invisible', fitlevel= None):
+    def updatePosition(self, boundaryType='Invisible'):
         worstFitness = False
-        prevRealX = self.x[0:self.nDim-self.intDim]
-        prevIntX = self.x[self.nDim-self.intDim:self.nDim]
         for i in xrange(self.nDim):
             if (i < (self.nDim-self.intDim)):
                 self.x[i] += self.v[i]
@@ -80,25 +78,22 @@ class Particle:
                 elif boundaryType=='Invisible':
                     worstFitness = True
         if (worstFitness):
-            currfit = 1e50
+            self.fit = 1e50
         else:
-            currfit = self.fitness()
-        if (fitlevel==None):
-            fitlevel = self.fit
-        tmp = random()
-        if ((currfit < fitlevel) or (tmp>self.alpha)):
-            self.fit = currfit
-        elif (tmp<self.alpha):
-            self.x[self.nDim-self.intDim:self.nDim] = prevIntX
             self.fit = self.fitness()
-
     def fitness(self):
         x = self.x[:]
         return self.fitfunc(x)
 
 class PSOProblem:
+    """
+    Alternating Optimized PSO
+    continuous and discrete variables are updated alternatively
+    step = 0: Just the same as ordinary PSO
+    step = 1: continuous, discrete, continuous, discrete,...
+    """
     # minX, maxX, minV, maxV should be list/array
-    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None, intDim=0, alpha=1.0):
+    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None, intDim=0, step=0):
         self.nDim = nDim
         if numOfParticles == None:
             self.numOfParticles = 10 
@@ -114,7 +109,7 @@ class PSOProblem:
         self.maxV = maxV
         self.fitfunc = fitfunc
         self.intDim = intDim
-        self.alpha = alpha
+        self.step = step
         self.p = [None]*(self.numOfParticles)
         self.pBest = [None]*(self.numOfParticles)
         self.gBest = None
@@ -123,8 +118,8 @@ class PSOProblem:
         gBest = 1e50
         bestK = 0
         for k in xrange(self.numOfParticles):
-            self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.intDim, self.alpha)
-            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.intDim, self.alpha)
+            self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.intDim)
+            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.intDim)
             self.pBest[k].x = self.p[k].x[:]
             self.pBest[k].fit = self.p[k].fit
             if self.pBest[k].fit < gBest:
@@ -144,15 +139,28 @@ class PSOProblem:
         # gBestArray[0]: initial gBest
         self.gBestArray = array([0.0]*(self.maxIteration+1))
         self.gBestArray[0] = self.gBest.fit
+        updateIntDim = True
         for i in xrange(self.maxIteration):
             for j in xrange(self.numOfParticles):
                 w = 0.9-(0.5)/self.maxIteration*i
                 v = [0.0]*(self.nDim)
-                for dim in range(self.nDim):
-                    v[dim] = ( w * self.p[j].v[dim] + c1*random()*(self.pBest[j].x[dim] - self.p[j].x[dim])
-                            + c2*random()*(self.gBest.x[dim] - self.p[j].x[dim]))
+                if (self.step==0):
+                    for dim in range(self.nDim):
+                        v[dim] = ( w * self.p[j].v[dim] + c1*random()*(self.pBest[j].x[dim] - self.p[j].x[dim])
+                                + c2*random()*(self.gBest.x[dim] - self.p[j].x[dim]))
+                else:
+                    if (updateIntDim):
+                        for dim in range(self.nDim-self.intDim, self.nDim):
+                            v[dim] = ( w * self.p[j].v[dim] + c1*random()*(self.pBest[j].x[dim] - self.p[j].x[dim])
+                                    + c2*random()*(self.gBest.x[dim] - self.p[j].x[dim]))
+                    else:
+                        for dim in range(self.nDim-self.intDim):
+                            v[dim] = ( w * self.p[j].v[dim] + c1*random()*(self.pBest[j].x[dim] - self.p[j].x[dim])
+                                    + c2*random()*(self.gBest.x[dim] - self.p[j].x[dim]))
+                    if (i%self.step==0):
+                        updateIntDim = not updateIntDim
                 self.p[j].setVelocity(v)
-                self.p[j].updatePosition(fitlevel=self.pBest[j].fit)
+                self.p[j].updatePosition()
                 if isBetterThan(self.p[j], self.pBest[j]):
                     self.pBest[j].x = self.p[j].x[:]
                     self.pBest[j].fit = self.p[j].fit
@@ -194,17 +202,56 @@ def Sinc(x):
     result = 1.0-result
     return result
 
-def SincTest():
+def SphereTest():
     nDim = 10
     numOfParticles = 20
-    maxIteration = 200
+    maxIteration = 2000
+    minX = array([-100.0]*nDim)
+    maxX = array([100.0]*nDim)
+    maxV = 0.2*(maxX - minX)
+    minV = -1.0*maxV
+    step = 0
+    p = [None]*5
+    for i in xrange(5):
+        step = i*5
+        p[i] = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Sphere, 5, step)
+        p[i].run()
+    pylab.title('AO-PSO')
+    pylab.xlabel('The $N^{th}$ Iteration')
+    pylab.ylabel('Global Best')
+    pylab.grid(True)
+    pylab.yscale('log')
+    for i in xrange(5):
+        pylab.plot(range(1+maxIteration), p[i].gBestArray,'-', label='step='+str(i*5))
+    pylab.legend(loc='lower left')
+    pylab.show()
+
+def RosenbrockTest():
+    nDim = 10
+    numOfParticles = 20
+    maxIteration = 2000
     minX = array([-10.0]*nDim)
     maxX = array([10.0]*nDim)
     maxV = 0.2*(maxX - minX)
     minV = -1.0*maxV
-    p1 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Sinc, 0, 1.0)
-    p1.run()
-    p1.drawResult()
+    step = 0
+    p = [None]*5
+    for i in xrange(5):
+        step = i*5
+        p[i] = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Rosenbrock, 5, step)
+        p[i].run()
+    pylab.title('AO-PSO Rosenbrock')
+    pylab.xlabel('The $N^{th}$ Iteration')
+    pylab.ylabel('Global Best')
+    pylab.grid(True)
+    pylab.yscale('log')
+    for i in xrange(5):
+        pylab.plot(range(1+maxIteration), p[i].gBestArray,'-', label='step='+str(i*5))
+    pylab.legend(loc='lower left')
+    pylab.show()
+
+
+
 
 
 def GriewankTest():
@@ -223,7 +270,7 @@ def GriewankTest():
     p2 = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV,Griewank, intDim, alpha)
     p2.run()
     pylab.title('AU-PSO')
-    pylab.xlabel('The $N^{th}$ Iteratioin')
+    pylab.xlabel('The $N^{th}$ Iteration')
     pylab.ylabel('Global Best')
     pylab.grid(True)
     pylab.plot(range(1+maxIteration), p1.gBestArray,'-', label='alpha=0.5')
@@ -235,4 +282,4 @@ def GriewankTest():
 
 
 if __name__=='__main__':
-    GriewankTest()
+    RosenbrockTest()
