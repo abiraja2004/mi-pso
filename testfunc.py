@@ -14,7 +14,7 @@ def Rosenbrock(x):
         result += (1.0-x[i])**2 + 100.0*((x[i+1]-x[i]**2)**2)
     return result
 
-def Rastringrin(x):
+def Rastrigrin(x):
     result = 0.0
     for i in xrange(len(x)):
         result += x[i]**2 - 10.0*cos(2*pi*x[i])+10
