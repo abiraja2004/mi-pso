@@ -8,18 +8,19 @@ import ipdb as pdb
 def TestOverStep():
     nDim = 10
     numOfParticles = 20
-    maxIteration = 1000
-    minX = array([-6.0]*nDim)
-    maxX = array([6.0]*nDim)
+    maxIteration = 2000
+    minX = array([-100.0]*nDim)
+    maxX = array([100.0]*nDim)
     maxV = 0.2*(maxX - minX)
     minV = -1.0*maxV
     numOfTrial = 20
     intDim = 5
-    for i in xrange(11):
-        step = i*1
+    stopstep = 200
+    for i in xrange(4):
+        step = i*3
         gBest = array([0.0]*maxIteration)
         for i in xrange(numOfTrial):
-            p1 = AOPSO.PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, AOPSO.Rastrigrin,intDim,step)
+            p1 = AOPSO.PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, AOPSO.Rastrigrin,intDim,step, stopstep)
             p1.run()
             gBest = gBest + p1.gBestArray[:maxIteration]
         gBest = gBest / numOfTrial
@@ -34,7 +35,7 @@ def TestOverStep():
 #    pylab.ylim(ylim[0], ylim[1])
 #    yticks = linspace(ylim[0], ylim[1], int((ylim[1]-ylim[0])/ystep+1))
 #    pylab.yticks(tuple(yticks), tuple(map(str,yticks)))
-    pylab.legend(loc='upper right')
+    pylab.legend(loc='lower left')
     pylab.show()
 
 if __name__=='__main__':

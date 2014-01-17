@@ -91,9 +91,10 @@ class PSOProblem:
     continuous and discrete variables are updated alternatively
     step = 0: Just the same as ordinary PSO
     step = 1: continuous, discrete, continuous, discrete,...
+    stopstep: after stopstep, stop alternating
     """
     # minX, maxX, minV, maxV should be list/array
-    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None, intDim=0, step=0):
+    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None, intDim=0, step=0, stopstep=1e50 ):
         self.nDim = nDim
         if numOfParticles == None:
             self.numOfParticles = 10 
@@ -110,6 +111,7 @@ class PSOProblem:
         self.fitfunc = fitfunc
         self.intDim = intDim
         self.step = step
+        self.stopstep = stopstep
         self.p = [None]*(self.numOfParticles)
         self.pBest = [None]*(self.numOfParticles)
         self.gBest = None
@@ -144,7 +146,7 @@ class PSOProblem:
             for j in xrange(self.numOfParticles):
                 w = 0.9-(0.5)/self.maxIteration*i
                 v = [0.0]*(self.nDim)
-                if (self.step==0):
+                if (self.step==0 or i>self.stopstep):
                     for dim in range(self.nDim):
                         v[dim] = ( w * self.p[j].v[dim] + c1*random()*(self.pBest[j].x[dim] - self.p[j].x[dim])
                                 + c2*random()*(self.gBest.x[dim] - self.p[j].x[dim]))

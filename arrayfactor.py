@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 Compute array factor of 1d and 2d antenna array.
 """
