@@ -17,7 +17,7 @@ def BPSOvsRPSOTest():
     lowerBound = -5.0
     upperBound =  5.0
     nSeg = 3
-    BPSODim = 48
+    BPSODim = 24
     gBest1 = array([0.0]*maxIteration)
     gBest2 = array([0.0]*maxIteration)
     numOfTrial = 200

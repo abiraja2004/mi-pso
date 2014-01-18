@@ -42,11 +42,12 @@ class Particle:
     # setPositiion not used in BPSO
     def setVelocity(self, v):
         self.v = v[:]
+        vMax = 4.0
         for i in range(self.nDim):
-            if self.v[i] > 6 :
-                self.v[i] = 6.0
-            elif self.v[i] < -6:
-                self.v[i] = -6.0
+            if self.v[i] > vMax :
+                self.v[i] =  vMax
+            elif self.v[i] < -vMax:
+                self.v[i] = -vMax
     def updatePosition(self):
         self.updateX()
         self.fit = self.fitness()
@@ -96,9 +97,9 @@ class PSOProblem:
 #        print 'initial gBest fitness is %', self.gBest.fit
             
     def run(self):
-        w = 1.0
-        c1 = 2.0
-        c2 = 2.0
+        w = 0.689343
+        c1 = 1.42694
+        c2 = 1.42694
         self.gBestArray = array([0.0]*(self.maxIteration+1))
         self.gBestArray[0] = self.gBest.fit
         for i in range(self.maxIteration):
@@ -140,15 +141,23 @@ def isBetterThan(particleA, particleB):
     return result
 
 def RastrigrinTest():
-    nDim = 48
-    nSeg = 3
-    lowerBound = -5.0
-    upperBound = 5.0
-    numOfParticles = 10
-    maxIteration = 200
-    p1 = PSOProblem(nDim, numOfParticles, maxIteration, nSeg, lowerBound, upperBound, Rastrigrin)
-    p1.run()
-    p1.drawResult()
+    nDim = 300
+    nSeg = 30
+    lowerBound = -5.12
+    upperBound = 5.12
+    numOfParticles = 40
+    maxIteration = 1000
+    numOfTrial = 30
+    gBest = array([0.0]*(maxIteration))
+    for i in xrange(numOfTrial):
+        p1 = PSOProblem(nDim, numOfParticles, maxIteration, nSeg, lowerBound, upperBound, Rastrigrin)
+        p1.run()
+        gBest = gBest + p1.gBestArray[:maxIteration]
+    gBest = gBest / numOfTrial
+    pylab.plot(range(maxIteration), gBest)
+    pylab.grid(True)
+    pylab.show()
+
 
 if __name__=='__main__':
     RastrigrinTest()
