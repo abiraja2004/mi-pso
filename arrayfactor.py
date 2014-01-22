@@ -14,7 +14,7 @@ def OneDimAF(num, pos, amp, phase, theta):
     # amp: Amplitude of element
     # unit of phase: radian
     # unit of theta: radian
-    return 20*log10(abs(sum(exp(1j*(phase/pi+2*pi*(pos-pos[0])*sin(theta))))))
+    return 20*log10(abs(sum(amp*exp(1j*(phase/pi+2*pi*(pos-pos[0])*sin(theta))))))
 
 #1D normalized sidelobe level
 def OneDimSLL(AF):

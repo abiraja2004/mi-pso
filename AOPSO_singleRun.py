@@ -250,7 +250,7 @@ def RosenbrockTest():
     p = [None]*5
     for i in xrange(5):
         step = i*5
-        p[i] = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Rosenbrock, 5, step)
+        p[i] = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Rosenbrock, intDim=5, step=step)
         p[i].run()
     pylab.title('AO-PSO Rosenbrock')
     pylab.xlabel('The $N^{th}$ Iteration')
