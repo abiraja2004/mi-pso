@@ -10,7 +10,7 @@ import pylab
 # x[0:-intDim]: real parameter
 # x[-intDim:]: integer parameter
 class Particle:
-    def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None, intDim = 0):
+    def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None, penaltyfunc=None, intDim = 0):
         self.nDim = nDim
         if minX== None:
             self.minX = [0]*nDim
@@ -28,11 +28,11 @@ class Particle:
             self.maxV = [0]*nDim
         else:
             self.maxV = maxV
-        if fitfunc==None:
-            self.fitfunc = None
-        else:
-            self.fitfunc = fitfunc
+        self.fitfunc = fitfunc
+        self.penaltyfunc = penaltyfunc
         self.intDim = intDim
+        # Store current iteration number in optimization
+        self.iternum= 0
         # v: velocity
         self.v = [0.0] * nDim
         # x: position value
@@ -43,6 +43,10 @@ class Particle:
         for i in xrange(self.nDim-self.intDim, self.nDim):
             self.x[i] = round(self.x[i])
         self.fit = self.fitness()
+    def setIternum(self, k):
+        self.iternum = k
+    def getIternum(self):
+        return self.iternum
     # setPositiion not used in BPSO
     def setVelocity(self, v):
         self.v = v[:]
@@ -83,7 +87,12 @@ class Particle:
             self.fit = self.fitness()
     def fitness(self):
         x = self.x[:]
-        return self.fitfunc(x)
+        fit = self.fitfunc(x)
+        if (self.penaltyfunc==None):
+            penalty = 0.0
+        else:
+            penalty = self.penaltyfunc(self.iternum,x)
+        return fit + penalty
 
 class PSOProblem:
     """
@@ -94,7 +103,7 @@ class PSOProblem:
     stopstep: after stopstep, stop alternating
     """
     # minX, maxX, minV, maxV should be list/array
-    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None, intDim=0, step=0, stopstep=1e50 ):
+    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None, penaltyfunc=None, intDim=0, step=0, stopstep=1e50 ):
         self.nDim = nDim
         if numOfParticles == None:
             self.numOfParticles = 10 
@@ -109,6 +118,7 @@ class PSOProblem:
         self.minV = minV
         self.maxV = maxV
         self.fitfunc = fitfunc
+        self.penaltyfunc = penaltyfunc
         self.intDim = intDim
         self.step = step
         self.stopstep = stopstep
@@ -120,8 +130,8 @@ class PSOProblem:
         gBest = 1e50
         bestK = 0
         for k in xrange(self.numOfParticles):
-            self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.intDim)
-            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.intDim)
+            self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc,self.penaltyfunc, self.intDim)
+            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.penaltyfunc, self.intDim)
             self.pBest[k].x = self.p[k].x[:]
             self.pBest[k].fit = self.p[k].fit
             if self.pBest[k].fit < gBest:
