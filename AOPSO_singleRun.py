@@ -59,6 +59,7 @@ class Particle:
                 self.v[i] = self.maxV[i]
 
     def updatePosition(self, boundaryType='Invisible'):
+        self.iternum +=1
         worstFitness = False
         for i in xrange(self.nDim):
             if (i < (self.nDim-self.intDim)):

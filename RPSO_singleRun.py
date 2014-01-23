@@ -8,7 +8,7 @@ from numpy import array
 import pylab
 
 class Particle:
-    def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None):
+    def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None, penaltyfunc=None):
         self.nDim = nDim
         if minX== None:
             self.minX = [0]*nDim
@@ -30,6 +30,8 @@ class Particle:
             self.fitfunc = None
         else:
             self.fitfunc = fitfunc
+        self.penaltyfunc=None
+        self.iternum = 0
         # v: velocity
         self.v = [0.0] * nDim
         # x: position value
@@ -47,6 +49,7 @@ class Particle:
             elif self.v[i] > self.maxV[i]:
                 self.v[i] = self.maxV[i]
     def updatePosition(self, boundaryType='Invisible'):
+        self.iternum +=1
         worstFitness = False
         for i in xrange(self.nDim):
             self.x[i] += self.v[i]
@@ -71,11 +74,16 @@ class Particle:
             self.fit = self.fitness()
     def fitness(self):
         x = self.x[:]
-        return self.fitfunc(x)
+        fit = self.fitfunc(x)
+        if (self.penaltyfunc==None):
+            penalty = 0.0
+        else:
+            penalty = self.penaltyfunc(self.iternum,x)
+        return fit + penalty
 
 class PSOProblem:
     # minX, maxX, minV, maxV should be list/array
-    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None):
+    def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None, penaltyfunc=None):
         self.nDim = nDim
         if numOfParticles == None:
             self.numOfParticles = 10 
@@ -90,6 +98,7 @@ class PSOProblem:
         self.minV = minV
         self.maxV = maxV
         self.fitfunc = fitfunc
+        self.penaltyfunc = penaltyfunc
         self.p = [None]*(self.numOfParticles)
         self.pBest = [None]*(self.numOfParticles)
         self.gBest = None
@@ -98,8 +107,8 @@ class PSOProblem:
         gBest = 1e50
         bestK = 0
         for k in xrange(self.numOfParticles):
-            self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc)
-            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc)
+            self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.penaltyfunc)
+            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.penaltyfunc)
             self.pBest[k].x = self.p[k].x[:]
             self.pBest[k].fit = self.p[k].fit
             if self.pBest[k].fit < gBest:
