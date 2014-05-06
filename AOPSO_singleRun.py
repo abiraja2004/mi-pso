@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 
+import logging
+import pdb
 from testfunc import *
 from math import *
 from random import random
-import ipdb as pdb
 from numpy import array
 import pylab
+import copy
 
 # x[0:-intDim]: real parameter
 # x[-intDim:]: integer parameter
 class Particle:
     def __init__(self, nDim, minX=None, maxX=None, minV=None, maxV=None, fitfunc=None, penaltyfunc=None, intDim = 0):
+        logging.info('a new particle inited')
+
         self.nDim = nDim
         if minX== None:
             self.minX = [0]*nDim
@@ -42,6 +46,10 @@ class Particle:
             self.x[i] = random()*(self.maxX[i]-self.minX[i]) + self.minX[i]
         for i in xrange(self.nDim-self.intDim, self.nDim):
             self.x[i] = round(self.x[i])
+            if self.x[i] < self.minX[i]:
+                self.x[i] = self.minX[i]
+            if self.x[i] > self.maxX[i]:
+                self.x[i] = self.maxX[i]
         self.fit = self.fitness()
     def setIternum(self, k):
         self.iternum = k
@@ -92,7 +100,7 @@ class Particle:
         if (self.penaltyfunc==None):
             penalty = 0.0
         else:
-            penalty = self.penaltyfunc(self.iternum,x)
+            penalty = self.penaltyfunc(self.iternum, x)
         return fit + penalty
 
 class PSOProblem:
@@ -105,6 +113,7 @@ class PSOProblem:
     """
     # minX, maxX, minV, maxV should be list/array
     def __init__(self, nDim, numOfParticles=None, maxIteration=None, minX=None, maxX=None, minV = None, maxV = None, fitfunc=None, penaltyfunc=None, intDim=0, step=0, stopstep=1e50 ):
+        logging.info('a new pso problem inited')
         self.nDim = nDim
         if numOfParticles == None:
             self.numOfParticles = 10 
@@ -132,13 +141,11 @@ class PSOProblem:
         bestK = 0
         for k in xrange(self.numOfParticles):
             self.p[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc,self.penaltyfunc, self.intDim)
-            self.pBest[k] = Particle(self.nDim, self.minX,self.maxX,self.minV,self.maxV,self.fitfunc, self.penaltyfunc, self.intDim)
-            self.pBest[k].x = self.p[k].x[:]
-            self.pBest[k].fit = self.p[k].fit
+            self.pBest[k] = copy.deepcopy(self.p[k])
             if self.pBest[k].fit < gBest:
                 gBest = self.pBest[k].fit
                 bestK = k
-        self.gBest = Particle(self.nDim, fitfunc=self.fitfunc)
+        self.gBest = copy.deepcopy(self.p[0]) # pick any particle is ok.
         self.gBest.x = self.p[bestK].x[:]
         self.gBest.fit = gBest
 #        print 'initial gBest fitness is %', self.gBest.fit
@@ -154,7 +161,10 @@ class PSOProblem:
         self.gBestArray[0] = self.gBest.fit
         updateIntDim = True
         for i in xrange(self.maxIteration):
+            logging.info('Round %d', i)
             for j in xrange(self.numOfParticles):
+                logging.info('Round %d, particle %d', i,j)
+                logging.info('Current x is %s', str(self.p[j].x[:]))
                 w = 0.9-(0.5)/self.maxIteration*i
                 v = [0.0]*(self.nDim)
                 if (self.step==0 or i>self.stopstep):
@@ -173,7 +183,9 @@ class PSOProblem:
                     if (i%self.step==0):
                         updateIntDim = not updateIntDim
                 self.p[j].setVelocity(v)
+                logging.info('Current v is %s', str(self.p[j].v[:]))
                 self.p[j].updatePosition()
+                logging.info('Updated x is %s', str(self.p[j].x[:]))
                 if isBetterThan(self.p[j], self.pBest[j]):
                     self.pBest[j].x = self.p[j].x[:]
                     self.pBest[j].fit = self.p[j].fit
@@ -227,7 +239,7 @@ def SphereTest():
     p = [None]*5
     for i in xrange(5):
         step = i*5
-        p[i] = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Sphere, 5, step)
+        p[i] = PSOProblem(nDim, numOfParticles, maxIteration, minX, maxX, minV, maxV, Sphere, intDim=5, step=step)
         p[i].run()
     pylab.title('AO-PSO')
     pylab.xlabel('The $N^{th}$ Iteration')
@@ -264,9 +276,6 @@ def RosenbrockTest():
     pylab.show()
 
 
-
-
-
 def GriewankTest():
     nDim = 10
     intDim = 3
@@ -290,8 +299,6 @@ def GriewankTest():
     pylab.plot(range(1+maxIteration), p2.gBestArray,'-', label='alpha=0.0')
     pylab.legend(loc='upper right')
     pylab.show()
-
-
 
 
 if __name__=='__main__':
